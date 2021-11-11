@@ -146,6 +146,7 @@ const enabledScroll = () => {
                 <img src="${card.dataset.fullImage}.jpg" alt="${title.textContent}">
             `;
 
+    
             pageOverlay.append(picture);
         }
     });
