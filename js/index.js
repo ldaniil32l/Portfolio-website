@@ -2,20 +2,13 @@ const disabledScroll = () => {
 
     const widthScroll = window.innerWidth - document.body.offsetWidth;
 
-    const mediaQuery = window.matchMedia('(min-width: 1440px)');
-
-    function handleTabletChange(e) {
-        if (e.matches) {
-            document.querySelector('.page__header').style.left = `calc(50% - ${720 + widthScroll / 2}px)`;
-
-        } else {
-            document.querySelector('.page__header').style.left = `calc(50% - 50vw - ${widthScroll / 2}px)`;
-        }
+    if (window.innerWidth >= 992) {
+        document.querySelector('.page__header').style.left = `calc(50% - 50vw - ${widthScroll / 2}px)`;
     }
 
-    handleTabletChange(mediaQuery);
-
-
+    if (window.innerWidth >= 1440) {
+        document.querySelector('.page__header').style.left = `calc(50% - ${720 + widthScroll / 2}px)`;
+    }
 
     document.body.scrollPosition = window.scrollY;
 
@@ -39,20 +32,9 @@ const disabledScroll = () => {
 
 const enabledScroll = () => {
 
-    const mediaQuery = window.matchMedia('(min-width: 1440px)');
-
-    function handleTabletChange(e) {
-        if (e.matches) {
-            document.querySelector('.page__header').style.left = `calc(50% - 720px)`;
-        } else {
-            document.querySelector('.page__header').style.left = `calc(50% - 50vw)`;
-        }
-    }
-
-    handleTabletChange(mediaQuery);
-
     document.documentElement.style.cssText = '';
     document.body.style.cssText = 'position: relative;';
+    document.querySelector('.page__header').style.left = '';
     window.scroll({top: document.body.scrollPosition});
 
 }
