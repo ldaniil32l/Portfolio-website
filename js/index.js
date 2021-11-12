@@ -2,7 +2,20 @@ const disabledScroll = () => {
 
     const widthScroll = window.innerWidth - document.body.offsetWidth;
 
-    document.querySelector('.page__header').style.left = `calc(50% - ${720 + widthScroll / 2}px)`;
+    const mediaQuery = window.matchMedia('(min-width: 1440px)');
+
+    function handleTabletChange(e) {
+        if (e.matches) {
+            document.querySelector('.page__header').style.left = `calc(50% - ${720 + widthScroll / 2}px)`;
+
+        } else {
+            document.querySelector('.page__header').style.left = `calc(50% - 50vw - ${widthScroll / 2}px)`;
+        }
+    }
+
+    handleTabletChange(mediaQuery);
+
+
 
     document.body.scrollPosition = window.scrollY;
 
@@ -20,13 +33,28 @@ const disabledScroll = () => {
     width: 100vw;
     padding-right: ${widthScroll}px;
     `;
+
+
 }
 
 const enabledScroll = () => {
-    document.querySelector('.page__header').style.left = `calc(50% - 720px)`;
+
+    const mediaQuery = window.matchMedia('(min-width: 1440px)');
+
+    function handleTabletChange(e) {
+        if (e.matches) {
+            document.querySelector('.page__header').style.left = `calc(50% - 720px)`;
+        } else {
+            document.querySelector('.page__header').style.left = `calc(50% - 50vw)`;
+        }
+    }
+
+    handleTabletChange(mediaQuery);
+
     document.documentElement.style.cssText = '';
     document.body.style.cssText = 'position: relative;';
     window.scroll({top: document.body.scrollPosition});
+
 }
 
 { // модальное окно
@@ -60,14 +88,15 @@ const enabledScroll = () => {
         };
 
         const closeModal = () => {
-            enabledScroll();
             const anim = () => {
                 opacity -= speed[sk];
                 modal.style.opacity = opacity;
                 if (opacity > 0) {
                     requestAnimationFrame(anim);
                 } else {
+                    modal.style.opacity = 0;
                     modal.classList.remove(openSelector);
+                    enabledScroll();
                 }
             };
             requestAnimationFrame(anim);
@@ -146,7 +175,6 @@ const enabledScroll = () => {
                 <img src="${card.dataset.fullImage}.jpg" alt="${title.textContent}">
             `;
 
-    
             pageOverlay.append(picture);
         }
     });
@@ -156,5 +184,85 @@ const enabledScroll = () => {
         pageOverlay.remove();
         pageOverlay.textContent = '';
     });
+
+}
+
+{ // создание карточек на основе json
+
+    const COUNT_CARD = 2;
+    const portfolioList = document.querySelector('.portfolio__list');
+    const portfolioAdd = document.querySelector('.portfolio__add');
+
+    const getData = () =>
+        fetch('db.json')
+            .then((responce) => {
+                if (responce.ok) {
+                    return responce.json();
+                } else {
+                    throw `Что пошло не так, попробуете позже, ошибка ${responce.status}`;
+                }
+            })
+            .catch(error => console.error(error));
+
+    const createStore = async () => {
+        const data = await getData();
+        return  cardData = {
+            data,
+            counter: 0,
+            count: COUNT_CARD,
+            get length() {
+                return this.data.length;
+            },
+            get cardData() {
+                const renderData = this.data.slice(this.counter, this.counter + this.count);
+                this.counter += renderData.length;
+                return renderData;
+            }
+        };
+    };
+
+    const renderCard = data => {
+        const cards = data.map(({ preview, year, type, client, image }) => {
+
+            const li = document.createElement('li');
+            li.classList.add('portfolio__item');
+
+            li.innerHTML = `
+                <article class="card" tabindex="0" role="button" aria-label="открыть макет" data-full-image="${image}">
+                <picture class="card__picture">
+                    <source srcset="${preview}.avif" type="image/avif">
+                    <source srcset="${preview}.webp" type="image/webp">
+                    <img src="${preview}.jpg" alt="превью iphone" width="166" height="103">
+                </picture>
+
+                <p class="card__data">
+                    <span class="card__client">Клиент: ${client}</span>
+                    <time class="card__date" datetime="${year}">год: ${year}</time>
+                </p>
+
+                <h3 class="card__title">${type}</h3>
+                </article>
+            `;
+
+            return li;
+        });
+
+        portfolioList.append(...cards)
+    };
+
+    const initPortfolio = async () => {
+        const store = await createStore();
+
+        renderCard(store.cardData);
+
+        portfolioAdd.addEventListener('click', () => {
+            renderCard(store.cardData);
+            if (store.length === store.counter) {
+                portfolioAdd.remove();
+            }
+        });
+    }
+
+    initPortfolio();
 
 }
